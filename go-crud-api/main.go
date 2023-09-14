@@ -36,7 +36,7 @@ func main() {
 	router.HandleFunc("/employees/{id}", getEmployee(db)).Methods("GET")
 	router.HandleFunc("/employees", createEmployee(db)).Methods("POST")
 	router.HandleFunc("/employees/{id}", updateEmployee(db)).Methods("PUT")
-	router.HandleFunc("/employees/{id}".deleteEmployee(db)).Methods("DELETE")
+	router.HandleFunc("/employees/{id}", deleteEmployee(db)).Methods("DELETE")
 
 }
 
@@ -54,6 +54,7 @@ func getEmployee(db *sql.DB) http.HandlerFunc {
 	}
 }
 
+// create employee
 func createEmployee(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var e Employee
@@ -67,9 +68,22 @@ func createEmployee(db *sql.DB) http.HandlerFunc {
 	}
 }
 
+// delete an employee
 func updateEmployee(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var e Employee
+		json.NewDecoder(r.Body).Decode(&e)
 
+		vars := mux.Vars(r)
+		id := vars["id"]
+
+		_, err := db.Exec("UPDATE employees SET name = $1, email = $2 WHERE id = $3", e.Name, e.Email, id)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		json.NewEncoder(w).Encode(e)
 	}
 }
 
